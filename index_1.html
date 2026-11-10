@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Order tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500&display=swap">
+<style>
+:root{--bg:#f5f4f7;--surface:#fff;--surface-2:#efedf3;--fg:#1f1b24;--muted:#6a6372;--line:#dcd8e2;--accent:#6b2f5f;--accent-soft:#f3e7f0;--danger:#b4232f;--warn:#9a5b00;
+--s-inq:#6a6372;--s-inq-bg:#ebe9ee;--s-quo:#1f5a9e;--s-quo-bg:#e3edf9;--s-ord:#6b3fa0;--s-ord-bg:#eee6f8;--s-pro:#9a5b00;--s-pro-bg:#fdf0d9;--s-shi:#3c4bb0;--s-shi-bg:#e6e8fa;--s-del:#1d6b45;--s-del-bg:#e1f2e8;--s-can:#8a8490;--s-can-bg:#f0eef2;
+--f-display:"Fraunces",Georgia,serif;--f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:#fff;color:var(--fg);font:14px/1.45 var(--f-body)}
+.wrap{max-width:none;margin:0;padding:24px 8px 48px;display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--f-display);font-weight:500;font-size:clamp(26px,4vw,34px);margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:4px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip .n{font-family:var(--f-mono);color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--c,var(--muted))}
+.chip:focus-visible,input:focus-visible,th button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.toolbar{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.toolbar input[type=search]{flex:1 1 240px;min-width:0;font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+.toolbar label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
+.tablebox{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th,td{text-align:left;padding:11px 14px;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--surface-2);white-space:nowrap}
+th button{all:unset;cursor:pointer}
+tbody tr:last-child td{border-bottom:0}
+td.num,td.date{font-family:var(--f-mono);white-space:nowrap}
+td.prod{max-width:420px;overflow-wrap:anywhere}
+td.prod strong{display:block;font-weight:600}
+td.prod span{color:var(--muted);white-space:pre-wrap}
+.due{display:block;font-family:var(--f-body);font-size:12px;margin-top:2px}
+.due.late{color:var(--danger)}.due.soon{color:var(--warn)}
+tr.late td:first-child{box-shadow:inset 3px 0 0 var(--danger)}
+tr.soon td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+.pill{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;white-space:nowrap;color:var(--c);background:var(--cb)}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--fg);font-size:15px;margin-bottom:4px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;color:var(--muted);font-size:12px}
+.legend span::before{content:"";display:inline-block;width:3px;height:12px;margin-right:6px;vertical-align:-2px}
+.l1::before{background:var(--danger)}.l2::before{background:var(--warn)}
+.demo{background:#fdf0d9;color:#7a4a00;border:1px solid #e8c98a;border-radius:8px;padding:8px 12px;font-size:13px}
+.upd{color:var(--muted);font-size:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.btn{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:9px 14px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.ghost{background:transparent}
+.btn[disabled]{opacity:.5;cursor:not-allowed}.btn:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.panel h2{margin:0;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.grid .wide{grid-column:1/-1}
+.panel label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.panel input,.panel select,.panel textarea{font:inherit;font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+.panel textarea{resize:vertical;min-height:70px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.msg{font-size:13px;margin:0;color:var(--danger)}.msg.ok{color:var(--s-del)}
+.new{box-shadow:inset 3px 0 0 var(--s-del)}
+</style></head><body>
+<div class="wrap">
+  <header>
+    <div>
+    <h1 id="title">Order tracker</h1>
+    <p class="sub">Product, quantity, delivery deadline and status of your orders in one place.</p>
+    </div>
+  </header>
+
+  <div class="demo" id="demo" hidden>Demo data. Set SHEET_CSV_URL in the page code to show your live orders.</div>
+  <div class="chips" id="chips" role="group" aria-label="Filter by status"></div>
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="Search product or description…" aria-label="Search">
+    <label><input id="hideDone" type="checkbox"> Hide delivered</label>
+  </div>
+  <div class="tablebox">
+    <table><thead><tr>
+      <th><button type="button" data-sort="date">Date</button></th>
+      <th>Product</th>
+      <th>Quantity</th>
+      <th><button type="button" data-sort="deadline">Deadline ↑</button></th>
+      <th><button type="button" data-sort="status">Status</button></th>
+    </tr></thead><tbody id="rows"></tbody></table>
+    <div class="empty" id="empty"><strong>Loading orders…</strong></div>
+  </div>
+  <div class="legend"><span class="l1">deadline passed</span><span class="l2">deadline within 7 days</span></div>
+  <div class="upd"><span id="upd"></span></div>
+</div>
+<script>
+/* ===== SETTINGS ===== */
+// Paste the link from Google Sheets: File > Share > Publish to web > sheet "Orders" > format CSV > Publish.
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQV3hljPqi5dTMyOHJtxoo4-Sxo8hUNqQ0u0jbDHK7IkFMe50ZDATUl_awLPaa5CzjfbAddAFjVbFop/pub?gid=109605356&single=true&output=csv";
+const REFRESH_MINUTES = 5;
+
+/* ==================== */
+const STATUSES=[["Inquiry","inq"],["Quote sent","quo"],["Ordered","ord"],["In production","pro"],["Shipped","shi"],["Delivered","del"],["Cancelled","can"]];
+const SMAP=Object.fromEntries(STATUSES.map(([l,k],i)=>[l.toLowerCase(),{label:l,k,i}]));
+const CLOSED=new Set(["delivered","cancelled"]);
+const DEMO=[["2026-11-09","A4 notebook, logo on cover","Glued A4 notebook, squared, 50 sheets, offset 80 g, logo printed on the cover","300","2026-11-25","Quote sent"],
+ ["2026-10-20","Cotton tote bag","Natural cotton tote, 1-colour logo print","500","2026-11-12","In production"],
+ ["2026-10-05","Ceramic mug","350 ml white mug, full-colour print","200","2026-11-05","In production"],
+ ["2026-09-28","Pen set","Metal pen, laser engraved logo","1000","2026-10-30","Delivered"]];
+const $=id=>document.getElementById(id);
+let orders=[],filter=null,sortKey="deadline",sortDir=1;
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function today(){const d=new Date();d.setHours(0,0,0,0);return d}
+const MON={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+function parseD(s){s=String(s||"").trim();if(!s)return null;let m;
+ if(m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))return new Date(+m[1],m[2]-1,+m[3]);
+ if(m=s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})$/))return new Date(+m[3],m[2]-1,+m[1]);
+ if(m=s.match(/^(\d{1,2})\s+([A-Za-z]{3})[a-z]*\.?\s+(\d{4})$/)){const mo=MON[m[2].toLowerCase()];if(mo!=null)return new Date(+m[3],mo,+m[1])}
+ return null}
+function iso(d){return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`:""}
+function fmtD(d){return d?d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):"—"}
+function fmtQ(q){const n=Number(String(q).replace(/[\s,]/g,""));return q!==""&&isFinite(n)?n.toLocaleString("en-GB")+" pcs":(q||"—")}
+function dueInfo(o){if(!o.deadline||CLOSED.has(o.status.toLowerCase()))return null;
+ const days=Math.round((o.deadline-today())/864e5);
+ if(days<0)return{cls:"late",txt:`${-days} ${-days===1?"day":"days"} overdue`};
+ if(days===0)return{cls:"soon",txt:"due today"};
+ if(days<=7)return{cls:"soon",txt:`in ${days} ${days===1?"day":"days"}`};
+ return null}
+function parseCSV(t){const rows=[];let r=[],f="",q=false;
+ for(let i=0;i<t.length;i++){const c=t[i];
+  if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+  else if(c==='"')q=true;else if(c===",")(r.push(f),f="");
+  else if(c==="\n"||c==="\r"){if(c==="\r"&&t[i+1]==="\n")i++;r.push(f);rows.push(r);r=[];f=""}else f+=c}
+ if(f!==""||r.length){r.push(f);rows.push(r)}return rows}
+function toOrders(rows){return rows.map(c=>({date:parseD(c[0]),product:(c[1]||"").trim(),desc:(c[2]||"").trim(),qty:(c[3]||"").trim(),deadline:parseD(c[4]),status:(c[5]||"").trim()}))
+ .filter(o=>o.product||o.desc)}
+function renderChips(){const n={};orders.forEach(o=>{const k=o.status.toLowerCase();n[k]=(n[k]||0)+1});
+ $("chips").innerHTML=`<button type="button" class="chip" aria-pressed="${filter===null}" data-f=""><span>All</span><span class="n">${orders.length}</span></button>`+
+ STATUSES.map(([l,k])=>`<button type="button" class="chip" aria-pressed="${filter===l.toLowerCase()}" data-f="${l.toLowerCase()}" style="--c:var(--s-${k})"><span class="dot"></span><span>${l}</span><span class="n">${n[l.toLowerCase()]||0}</span></button>`).join("")}
+function visible(){const q=$("q").value.trim().toLowerCase(),hide=$("hideDone").checked;
+ return orders.filter(o=>{const s=o.status.toLowerCase();return(!filter||s===filter)&&(!hide||!CLOSED.has(s))&&(!q||(o.product+" "+o.desc).toLowerCase().includes(q))})
+ .sort((a,b)=>{if(sortKey==="status")return((SMAP[a.status.toLowerCase()]?.i??99)-(SMAP[b.status.toLowerCase()]?.i??99))*sortDir;
+  const x=iso(a[sortKey])||"9999",y=iso(b[sortKey])||"9999";return x<y?-sortDir:x>y?sortDir:0})}
+function render(){renderChips();const list=visible();
+ $("rows").innerHTML=list.map(o=>{const s=SMAP[o.status.toLowerCase()],due=dueInfo(o);
+  const pill=s?`<span class="pill" style="--c:var(--s-${s.k});--cb:var(--s-${s.k}-bg)">${s.label}</span>`:(o.status?`<span class="pill" style="--c:var(--s-inq);--cb:var(--s-inq-bg)">${esc(o.status)}</span>`:"—");
+  return `<tr class="${due?due.cls:""}"><td class="date">${fmtD(o.date)}</td>
+  <td class="prod"><strong>${esc(o.product)||"—"}</strong>${o.desc?`<span>${esc(o.desc)}</span>`:""}</td>
+  <td class="num">${esc(fmtQ(o.qty))}</td>
+  <td class="date">${fmtD(o.deadline)}${due?`<span class="due ${due.cls}">${due.txt}</span>`:""}</td><td>${pill}</td></tr>`}).join("");
+ const e=$("empty");if(list.length)e.hidden=true;else{e.hidden=false;e.innerHTML=orders.length?"<strong>No orders match this filter</strong>Change the status filter or the search.":"<strong>No orders yet</strong>New orders will appear here."}
+ document.querySelectorAll("th button").forEach(b=>{const k=b.dataset.sort;b.textContent=b.textContent.replace(/ [↑↓]$/,"")+(k===sortKey?(sortDir>0?" ↑":" ↓"):"")})}
+$("chips").onclick=e=>{const b=e.target.closest(".chip");if(!b)return;filter=b.dataset.f||null;render()};
+$("q").oninput=render;$("hideDone").onchange=render;
+document.querySelector("thead").onclick=e=>{const b=e.target.closest("button[data-sort]");if(!b)return;const k=b.dataset.sort;sortDir=k===sortKey?-sortDir:1;sortKey=k;render()};
+async function load(){
+ if(!SHEET_CSV_URL){$("demo").hidden=false;orders=toOrders(DEMO);$("empty").hidden=true;render();return}
+ try{
+  const url=SHEET_CSV_URL+(SHEET_CSV_URL.includes("?")?"&":"?")+"_="+Date.now();
+  const res=await fetch(url);if(!res.ok)throw new Error(res.status);
+  const rows=parseCSV(await res.text());
+  const h=rows.findIndex(r=>r.some(c=>/delivery deadline/i.test(c)));
+  if(h<0)throw new Error("header");
+  const t=(rows[0]||[])[0]||"";if(t&&!/^\s*\[client name\]/i.test(t)){$("title").textContent=t;document.title=t}
+  orders=toOrders(rows.slice(h+1));
+  $("upd").textContent="Last refreshed "+new Date().toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"});
+  render();
+ }catch(err){if(!orders.length){$("empty").hidden=false;$("empty").innerHTML="<strong>Could not load the orders</strong>Please refresh the page in a moment."}}
+}
+load();
+if(SHEET_CSV_URL)setInterval(load,REFRESH_MINUTES*60000);
+</script></body></html>
